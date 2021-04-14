@@ -1,0 +1,17 @@
+---
+- hosts: webserver
+  become: true
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: /var/lib/jenkins/.ssh/id_rsa
+  tasks:
+    - name: Delete old webpage
+      file:
+        state: absent
+        path: /var/www/html/index.html
+
+    - name: Copy over new webpage
+      copy:
+        src: ./webpage/index.html
+        dest: /var/www/html/

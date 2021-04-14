@@ -1,0 +1,28 @@
+- hosts: localhost # Denna play ska utföras på min lokala maskin
+  gather_facts: false
+
+  tasks:
+    - name: Launching AWS ubuntu webserver
+      ec2: # Modul för att kommunicera med AWS
+        key_name: aws_eu_central # Namn på SSH nyckeln på AWS som servern ska använda
+        instance_type: t2.micro # Storlek på serverns resurser
+        image: ami-0767046d1677be5a0 # Image ID för att använda ubuntu 20.04 LTS x86
+        region: eu-central-1 # Vilken region servern ska vara, i detta fall frankfurt
+        wait: yes # Väntar på att instansen ska bli klar innan den returnerar
+        count: 1 # Hur många instanser jag vill starta
+        vpc_subnet_id: subnet-f5b9c59f # Vilket virtuellt nätverk på AWS den ska använda
+        assign_public_ip: yes # Att jag vill få en publik ip adress
+        group: HTTP-webserver # Vilken säkehetsgrupp servern ska tillhöra
+        aws_access_key: 
+        aws_secret_key: 
+      register: ec2 # Sparar resultatet av denna task i en variabel
+
+    - name: Write public ip to file
+      copy: # Skriver över till angiven fil, skapar filen om den inte existerar 
+        dest: "~/school/DevOps/Automationframework/assignment/launch_servers/webserver_ip.yml"
+        content: |
+          webserver ansible_host={{ ec2.instances[0].public_ip }}
+
+    - name: Give server extra time before installing components
+      pause: seconds=20
+      # Servern behöver lite extra tid innan man börjar arbeta på den
